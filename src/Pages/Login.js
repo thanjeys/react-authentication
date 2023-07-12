@@ -22,7 +22,7 @@ function Login() {
   const handleSubmit = (event) => {
     console.log('submitted');
     event.preventDefault();
-    let errorsInput = initialStateErrors;
+    let errorsInput = {...initialStateErrors};
     let hasError = false;
     if (inputs.email === "") {
       errorsInput.email.required = true;
@@ -50,12 +50,12 @@ function Login() {
       })  
     }
     
-    setErrors(errorsInput);
+    setErrors({...errorsInput});
     
   };
 
   const [inputs, setInputs] = useState({
-    name: "",
+    password: "",
     email: "",
   });
 

@@ -21,7 +21,7 @@ function Register() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    let errorsInput = initialStateErrors;
+    let errorsInput = {...initialStateErrors};
     let hasError = false;
     if (inputs.name === "") {
       errorsInput.name.required = true;
@@ -56,7 +56,7 @@ function Register() {
       })  
     }
     
-    setErrors(errorsInput);
+    setErrors({...errorsInput});
     
   };
 
