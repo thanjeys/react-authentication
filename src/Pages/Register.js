@@ -1,6 +1,10 @@
 import { useState } from "react";
-
-
+import { RegisterUser } from "../Services/Api";
+import Loading from "../Components/Loading";
+import { storeUserData } from "../Services/Storage";
+import { isAuthenticated } from "../Services/Auth";
+import Navigation from "../Components/Navigation";
+import { Navigate } from "react-router-dom";
 
 function Register() {
  
@@ -19,32 +23,41 @@ function Register() {
     event.preventDefault();
     let errorsInput = initialStateErrors;
     let hasError = false;
-    console.log('beforestore', errors);
-    if (inputs.name == "") {
+    if (inputs.name === "") {
       errorsInput.name.required = true;
-      console.log('name errors', errors);
       hasError = true;
     }
-    if (inputs.email == "") {
+    if (inputs.email === "") {
       errorsInput.email.required = true;
-      console.log('em errors', errors);
       hasError = true;
     }
-    if (inputs.password == "") {
+    if (inputs.password === "") {
       errorsInput.password.required = true;
-      console.log('pas errors', errors);
       hasError = true;
     }
 	
     if (!hasError) {
       setLoading(true);
-      alert('success')
+
+      RegisterUser(inputs)
+      .then((res) => {
+        storeUserData(res.data.idToken)
+      })
+      .catch((error) => {
+        let errorData = error.response.data.error;
+        console.log('fail', errorData.message)
+        if (errorData.message === "EMAIL_EXISTS")
+          errorsInput.custom_error = "Email already exists";
+        else
+          errorsInput.custom_error = "Server Error " + errorData.message;
+      })
+      .finally(() => {
+        setLoading(false);
+      })  
     }
-    else
-    {
-			console.log(initialStateErrors, errors);
-			setErrors(errors);
-    }
+    
+    setErrors(errorsInput);
+    
   };
 
   const [inputs, setInputs] = useState({
@@ -56,10 +69,16 @@ function Register() {
   const handleInput = (e) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
   };
-
+  
+  if (isAuthenticated())
+  {
+     return <Navigate to="/dashboard" />
+  }
   return (
+    <>
+    <Navigation />
     <div className="container">
-      <div className="row">
+      <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="card">
             <div className="card-header">Register</div>
@@ -73,7 +92,7 @@ function Register() {
                     name="name"
                     onChange={handleInput}
                   />
-                  {errors.name.required == true ? (
+                  {errors.name.required === true ? (
                     <p className="text-danger">Name is required</p>
                   ) : null}
                 </div>
@@ -101,7 +120,13 @@ function Register() {
                     <p className="text-danger">Password is required</p>
                   ) : null}
                 </div>
-                <button type="submit" className="btn btn-primary">
+                {errors.custom_error ? (
+                    <p className="text-danger">{ errors.custom_error }</p>
+                  ) : null}
+                
+                { loading &&  <Loading />}
+                <br />
+                <button type="submit" disabled={loading} className="btn btn-primary">
                   Submit
                 </button>
               </form>
@@ -110,6 +135,7 @@ function Register() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
